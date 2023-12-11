@@ -12,74 +12,64 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Путь к файлу
-const filePath = './public/data.xlsx';
+const filePath = "surveys.xlsx";
+// Ваш код server.js
 
-app.post('/api/save-data', (req, res) => {
-  const { name, age } = req.body;
+app.post("/saveData", (req, res) => {
+  const { name, age, hospital, doctor, answers } = req.body;
 
-  // Чтение существующей таблицы или создание новой
-  let workbook;
-  if (fs.existsSync(filePath)) {
-    const fileContent = fs.readFileSync(filePath);
-    workbook = XLSX.read(fileContent, { type: 'buffer' });
+  // Проверка наличия файла
+  const fileExists = fs.existsSync(filePath);
+
+  // Если файл не существует, создаем новую книгу
+  let wb;
+  if (!fileExists) {
+    wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([], { header: ["name", "age", "hospital", "doctor", "question1", "question2", "question3", "question4", "question5"] }), "Sheet1");
   } else {
-    workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['Name', 'Age']]), 'Sheet1');
+    // Если файл существует, читаем его
+    const fileData = fs.readFileSync(filePath);
+    wb = XLSX.read(fileData, { type: "buffer" });
   }
 
-  // Добавление новых данных
-  const sheet = workbook.Sheets['Sheet1'];
-  const newRow = [name, age];
-  XLSX.utils.sheet_add_aoa(sheet, [newRow], { origin: -1 });
-
-  // Запись обновленной таблицы обратно в файл
-  const updatedContent = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
-  
-  // Создание папки public, если её нет
-  if (!fs.existsSync('./public')) {
-    fs.mkdirSync('./public');
+  // Добавляем новую анкету
+  const ws = wb.Sheets["Sheet1"];
+  const newRow = [name, age, hospital, doctor];
+  for (let i=0; i<answers.length; i++){
+    newRow.push(answers[i])
   }
+  console.log("All answers", newRow)
+  XLSX.utils.sheet_add_aoa(ws, [newRow], { origin: -1 });
 
-  fs.writeFileSync(filePath, updatedContent);
 
-  res.status(200).send('Данные успешно сохранены в таблице');
+  // Сохраняем книгу в файл
+  XLSX.writeFile(wb, filePath);
+
+  res.send("Данные успешно сохранены!");
 });
 
-app.get('/api/get-statistic-by-age', (req, res) => {
-    console.log("Кто-то пришел за данными")
-    // Чтение данных из файла
-    const fileContent = fs.readFileSync(filePath);
-    const workbook = XLSX.read(fileContent, { type: 'buffer' });
-    const sheet = workbook.Sheets['Sheet1'];
-    const data = XLSX.utils.sheet_to_json(sheet);
-  
-    // Создание объекта для хранения статистики
-    const statistic = {};
-  
-    // Подсчет количества людей разного возраста
-    data.forEach((row) => {
-      const age = row.Age.toString(); // Приводим к строке, чтобы быть уверенными в формате
-      statistic[age] = (statistic[age] || 0) + 1;
-    });
-  
-    res.json(statistic);
-  });
 
-app.get('/api/get-statistic-by-name', (req, res) => {
-    const fileContent = fs.readFileSync(filePath);
-    const workbook = XLSX.read(fileContent, { type: 'buffer' });
-    const sheet = workbook.Sheets['Sheet1'];
-    const data = XLSX.utils.sheet_to_json(sheet);
-  
-    const statistic = {};
-  
-    data.forEach((row) => {
-      const name = row.Name;
-      statistic[name] = (statistic[name] || 0) + 1;
-    });
-  
-    res.json(statistic);
-  });
+app.get("/getSurveyData", (req, res) => {
+  // Путь к файлу Excel
+  const filePath = "surveys.xlsx";
+
+  // Проверка наличия файла
+  const fileExists = fs.existsSync(filePath);
+
+  if (!fileExists) {
+    return res.status(404).send("Файл с данными не найден");
+  }
+
+  // Если файл существует, читаем его
+  const fileData = fs.readFileSync(filePath);
+  const wb = XLSX.read(fileData, { type: "buffer" });
+
+  // Получаем данные из листа "Анкеты"
+  const ws = wb.Sheets["Sheet1"];
+  const surveyData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  console.log("Я отправляю", surveyData)
+  res.json(surveyData.slice(1)); // Исключаем заголовки колонок из данных
+});
 
 
 app.listen(PORT, () => {

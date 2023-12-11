@@ -1,27 +1,29 @@
 {
-  "name": "react_excel",
+  "name": "my-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.6.2",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.20",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^13.0.0",
+    "@testing-library/user-event": "^13.2.1",
     "chart.js": "3.8.0",
-    "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "react": "^18.2.0",
     "react-chartjs-2": "3.0.4",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
-    "xlsx": "^0.18.5"
+    "web-vitals": "^2.1.0",
+    "xlsx": "0.17.0"
   },
   "scripts": {
-    "start": "concurrently \"yarn server\" \"yarn client\"",
-    "server": "node server.js",
-    "client": "react-scripts start"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
